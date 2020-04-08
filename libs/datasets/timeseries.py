@@ -3,6 +3,7 @@ import enum
 import pandas as pd
 import datetime
 from libs.datasets import dataset_utils
+from libs.datasets import custom_aggregations
 from libs.datasets.dataset_utils import AggregationLevel
 
 
@@ -26,6 +27,7 @@ class TimeseriesDataset(object):
         CASES = "cases"
         DEATHS = "deaths"
         RECOVERED = "recovered"
+        CURRENT_HOSPITALIZED = "current_hospitalized"
 
         # Generated in from_source
         COUNTY = "county"
@@ -33,12 +35,25 @@ class TimeseriesDataset(object):
         IS_SYNTHETIC = "is_synthetic"
         GENERATED = "generated"
 
-    def __init__(self, data: pd.DataFrame):
+        @classmethod
+        def metrics(cls) -> List[str]:
+            """Fields that contain metrics and can be aggregated."""
+            return [cls.CASES, cls.DEATHS, cls.RECOVERED, cls.CURRENT_HOSPITALIZED]
+
+    def __init__(self, data: pd.DataFrame, source_data=None):
         self.data = data
 
     @property
     def states(self) -> List:
         return self.data[self.Fields.STATE].dropna().unique().tolist()
+
+    @property
+    def state_data(self) -> pd.DataFrame:
+        return self.get_subset(AggregationLevel.STATE).data
+
+    @property
+    def county_data(self) -> pd.DataFrame:
+        return self.get_subset(AggregationLevel.COUNTY).data
 
     def county_keys(self) -> List:
         """Returns a list of all (country, state, county) combinations."""
@@ -68,7 +83,9 @@ class TimeseriesDataset(object):
         if aggregation_level == AggregationLevel.COUNTRY:
             group = [self.Fields.COUNTRY]
 
-        data = self.data[self.data[self.Fields.AGGREGATE_LEVEL] == aggregation_level.value].reset_index()
+        data = self.data[
+            self.data[self.Fields.AGGREGATE_LEVEL] == aggregation_level.value
+        ].reset_index()
         return data.iloc[data.groupby(group).date.idxmax(), :]
 
     def get_subset(
@@ -119,8 +136,19 @@ class TimeseriesDataset(object):
         return data
 
     @classmethod
-    def from_source(cls, source: "DataSource", fill_missing_state=True):
-        """Loads data from a specific datasource."""
+    def from_source(
+        cls, source: "DataSource", fill_missing_state: bool = True, fill_na: bool = True
+    ) -> "Timeseries":
+        """Loads data from a specific datasource.
+
+        Args:
+            source: DataSource to standardize for timeseries dataset
+            fill_missing_state: If True, backfills missing state data by
+                calculating county level aggregates.
+            fill_na: If True, fills in all NaN values for metrics columns.
+
+        Returns: Timeseries object.
+        """
         if not source.TIMESERIES_FIELD_MAP:
             raise ValueError("Source must have field timeseries field map.")
 
@@ -132,6 +160,19 @@ class TimeseriesDataset(object):
         data = data.rename(columns=to_common_fields)[final_columns]
         data[cls.Fields.SOURCE] = source.SOURCE_NAME
         data[cls.Fields.GENERATED] = False
+
+        group = [
+            cls.Fields.DATE,
+            cls.Fields.SOURCE,
+            cls.Fields.COUNTRY,
+            cls.Fields.AGGREGATE_LEVEL,
+            cls.Fields.STATE,
+            cls.Fields.GENERATED,
+        ]
+        data = custom_aggregations.update_with_combined_new_york_counties(
+            data, group, are_boroughs_zero=True
+        )
+
         if fill_missing_state:
             state_groupby_fields = [
                 cls.Fields.DATE,
@@ -148,6 +189,15 @@ class TimeseriesDataset(object):
             non_matching[cls.Fields.GENERATED] = True
             data = pd.concat([data, non_matching])
 
+        if fill_na:
+            # Filtering out metric columns that don't exist in the dataset.
+            # It might be that we all timeseries datasets to have all of the metric
+            # columns. If so, initialization of the missing columns should come earlier.
+            metric_columns = [
+                field for field in cls.Fields.metrics() if field in data.columns
+            ]
+            data[metric_columns] = data[metric_columns].fillna(0.0)
+
         fips_data = dataset_utils.build_fips_data_frame()
         data = dataset_utils.add_county_using_fips(data, fips_data)
 
@@ -159,12 +209,17 @@ class TimeseriesDataset(object):
         dataset_utils.summarize(
             self.data,
             AggregationLevel.COUNTY,
-            [self.Fields.DATE, self.Fields.COUNTRY, self.Fields.STATE, self.Fields.FIPS]
+            [
+                self.Fields.DATE,
+                self.Fields.COUNTRY,
+                self.Fields.STATE,
+                self.Fields.FIPS,
+            ],
         )
 
         print()
         dataset_utils.summarize(
             self.data,
             AggregationLevel.STATE,
-            [self.Fields.DATE, self.Fields.COUNTRY, self.Fields.STATE]
+            [self.Fields.DATE, self.Fields.COUNTRY, self.Fields.STATE],
         )
