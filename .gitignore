@@ -140,3 +140,4 @@ dmypy.json
 
 # VScode
 *.vscode
+.vs

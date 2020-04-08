@@ -27,6 +27,9 @@ def get_interventions(start_date=datetime.now().date()):
             start_date: 1.7,
             start_date + timedelta(days=90) : None
         },
+        {  #masks
+            start_date: 1,
+        }
     ]
 
 OUTPUT_DIR = 'results/test'
