@@ -27,9 +27,36 @@ def get_interventions(start_date=datetime.now().date()):
             start_date: 1.7,
             start_date + timedelta(days=90) : None
         },
-        {  #masks
-            start_date: 1,
-        }
+        {  #scenario 1
+            start_date: 2.3,
+        },
+        {  #scenario 2
+            start_date: 2.3,
+        },
+        {  #scenario 3
+            start_date: 2.3,
+        },
+        {  #scenario 4
+            start_date: 2.3,
+        },
+        {  #scenario 5
+            start_date: 2.3,
+        },
+        {  #scenario 6
+            start_date: 2.3,
+        },
+        {  #scenario 7
+            start_date: 2.3,
+        },
+        {  #scenario 8
+            start_date: 2.3,
+        },
+        {  #scenario 9
+            start_date: 2.3,
+        },
+        {  #scenario 10
+            start_date: 2.3,
+        },
     ]
 
 
