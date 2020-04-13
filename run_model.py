@@ -75,7 +75,7 @@ def run_county_summary(version: data_version.DataVersion, output, state=None):
 def run_state(version: data_version.DataVersion, output, state=None):
     """Run State level model."""
     min_date = datetime.datetime(2020, 3, 7)
-    max_date = datetime.datetime(2020, 7, 6)
+    max_date = datetime.datetime(2020, 8, 21)
 
     run.run_state_level_forecast(min_date, max_date, output, country="USA", state=state)
     _logger.info(f"Wrote output to {output}")

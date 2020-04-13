@@ -65,7 +65,8 @@ us_state_abbrev = {
     'Washington': 'WA',
     'West Virginia': 'WV',
     'Wisconsin': 'WI',
-    'Wyoming': 'WY'
+    'Wyoming': 'WY',
+    'United States All': 'USa',
 }
 
 us_fips = {
@@ -124,6 +125,7 @@ us_fips = {
     "Northern Mariana Islands":	"69",
     "Puerto Rico":	"72",
     "Virgin Islands":	"78",
+    "United States All": "999999",
 }
 
 

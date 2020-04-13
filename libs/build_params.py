@@ -9,53 +9,33 @@ from datetime import datetime, timedelta, date
 def get_interventions(start_date=datetime.now().date()):
     return [
         None,  # No Intervention
-        {  # Flatten the Curve
-            start_date: 1.3,
-            start_date + timedelta(days=30) : 1.1,
-            start_date + timedelta(days=60) : 0.8,
-            start_date + timedelta(days=90) : None
-        },
-        {  # Full Containment
-            start_date : 1.3,
-            start_date + timedelta(days=7) : 0.3,
-            start_date + timedelta(days=30 + 7) : 0.2,
-            start_date + timedelta(days=30 + 2*7) : 0.1,
-            start_date + timedelta(days=30 + 3*7) : 0.035,
-            start_date + timedelta(days=30 + 4*7) : 0
+        {  # 2.3
+            start_date: 2.3,
+            start_date + timedelta(days=140) : None
         },
         {  # Social Distancing
             start_date: 1.7,
-            start_date + timedelta(days=90) : None
+            start_date + timedelta(days=140) : None
         },
         {  #scenario 1
-            start_date: 2.3,
+            start_date: (1 - .575 * .08 * .05) * 1.7,
+            start_date + timedelta(days=140) : None
         },
         {  #scenario 2
-            start_date: 2.3,
+            start_date: (1 - .575 * 1 * 1) * 1.7,
+            start_date + timedelta(days=140) : None
         },
         {  #scenario 3
-            start_date: 2.3,
+            start_date: (1 - .575 * .54 * .525) * 1.7,
+            start_date + timedelta(days=140) : None
         },
         {  #scenario 4
-            start_date: 2.3,
+            start_date: (1 - .4 * .08 * .05) * 1.7,
+            start_date + timedelta(days=140) : None
         },
         {  #scenario 5
-            start_date: 2.3,
-        },
-        {  #scenario 6
-            start_date: 2.3,
-        },
-        {  #scenario 7
-            start_date: 2.3,
-        },
-        {  #scenario 8
-            start_date: 2.3,
-        },
-        {  #scenario 9
-            start_date: 2.3,
-        },
-        {  #scenario 10
-            start_date: 2.3,
+            start_date: (1 - .75 * 1 * 1) * 1.7,
+            start_date + timedelta(days=140) : None
         },
     ]
 
@@ -119,5 +99,6 @@ US_STATE_ABBREV = {
     'Washington': 'WA',
     'West Virginia': 'WV',
     'Wisconsin': 'WI',
-    'Wyoming': 'WY'
+    'Wyoming': 'WY',
+    'United States All': 'USa'
 }
